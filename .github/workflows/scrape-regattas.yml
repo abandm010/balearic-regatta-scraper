@@ -67,13 +67,3 @@ jobs:
         fi
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
-    - name: Upload results as artifact (for debugging)
-      uses: actions/upload-artifact@v3
-      if: always()
-      with:
-        name: regatta-results
-        path: |
-          regattas.json
-          *.log
-        retention-days: 7
