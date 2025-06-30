@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⛵ Balearic Sailing Calendar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .calendar-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .calendar-header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .calendar-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-btn {
+            background: #3498db;
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        .nav-btn:hover {
+            background: #2980b9;
+        }
+
+        .current-month {
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: #ecf0f1;
+        }
+
+        .calendar-day-header {
+            background: #34495e;
+            color: white;
+            padding: 15px 5px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .calendar-day {
+            background: white;
+            min-height: 120px;
+            padding: 8px;
+            border: 1px solid #ecf0f1;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .calendar-day:hover {
+            background: #f8f9fa;
+        }
+
+        .calendar-day.other-month {
+            background: #f7f7f7;
+            color: #bdc3c7;
+        }
+
+        .calendar-day.today {
+            background: #e3f2fd;
+            border: 2px solid #2196F3;
+        }
+
+        .day-number {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .regatta-event {
+            background: #3498db;
+            color: white;
+            padding: 2px 5px;
+            margin: 1px 0;
+            border-radius: 3px;
+            font-size: 0.75em;
+            line-height: 1.2;
+            cursor: pointer;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .regatta-event:hover {
+            background: #2980b9;
+        }
+
+        .regatta-event.major-event {
+            background: #e74c3c;
+        }
+
+        .regatta-event.club-event {
+            background: #27ae60;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #7f8c8d;
+            font-size: 1.2em;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+
+        .stats {
+            text-align: center;
+            padding: 15px;
+            background: #2c3e50;
+            color: white;
+            font-size: 0.9em;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+        }
+
+        .close {
+            float: right;
+            font-size: 24px;
+            cursor: pointer;
+            color: #aaa;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .calendar-day {
+                min-height: 80px;
+                padding: 4px;
+            }
+            
+            .regatta-event {
+                font-size: 0.7em;
+                padding: 1px 3px;
+            }
+            
+            .legend {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⛵ Balearic Sailing Calendar</h1>
+            <p>All sailing events across Mallorca, Menorca, Ibiza & Formentera</p>
+        </div>
+
+        <div class="calendar-container">
+            <div class="calendar-header">
+                <div class="calendar-nav">
+                    <button class="nav-btn" onclick="changeMonth(-1)">← Previous</button>
+                    <div class="current-month" id="currentMonth"></div>
+                    <button class="nav-btn" onclick="changeMonth(1)">Next →</button>
+                </div>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #e74c3c;"></div>
+                    <span>Major Events (Copa del Rey, PalmaVela)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #3498db;"></div>
+                    <span>Regular Regattas</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #27ae60;"></div>
+                    <span>Club Events</span>
+                </div>
+            </div>
+
+            <div class="calendar" id="calendar">
+                <div class="loading">Loading sailing events...</div>
+            </div>
+
+            <div class="stats" id="stats">
+                <span id="totalEvents">Loading...</span> • Last updated: <span id="lastUpdated">...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Details Modal -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentDate = new Date();
+        let regattaData = [];
+
+        // Load regatta data from GitHub
+        async function loadRegattaData() {
+            try {
+                const response = await fetch('./regattas.json');
+                const data = await response.json();
+                regattaData = data || [];
+                updateStats();
+                renderCalendar();
+            } catch (error) {
+                console.error('Error loading regatta data:', error);
+                regattaData = [];
+                renderCalendar();
+            }
+        }
+
+        function updateStats() {
+            const totalEvents = regattaData.length;
+            const lastUpdated = regattaData.length > 0 ? 
+                new Date(regattaData[0].scraped_at || Date.now()).toLocaleDateString() : 
+                new Date().toLocaleDateString();
+            
+            document.getElementById('totalEvents').textContent = `${totalEvents} upcoming events`;
+            document.getElementById('lastUpdated').textContent = lastUpdated;
+        }
+
+        function getEventType(title, club) {
+            const titleLower = title.toLowerCase();
+            const clubLower = club.toLowerCase();
+            
+            // Major events
+            if (titleLower.includes('copa del rey') || titleLower.includes('palmavela') || 
+                titleLower.includes('princesa sofia') || titleLower.includes('mapfre')) {
+                return 'major-event';
+            }
+            
+            // Club events
+            if (titleLower.includes('trophy') || titleLower.includes('trofeo') || 
+                titleLower.includes('master') || titleLower.includes('optimist')) {
+                return 'club-event';
+            }
+            
+            return 'regular-event';
+        }
+
+        function renderCalendar() {
+            const calendar = document.getElementById('calendar');
+            const currentMonth = document.getElementById('currentMonth');
+            
+            // Set month header
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'];
+            currentMonth.textContent = `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+            
+            // Clear calendar
+            calendar.innerHTML = '';
+            
+            // Add day headers
+            const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            dayHeaders.forEach(day => {
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'calendar-day-header';
+                dayHeader.textContent = day;
+                calendar.appendChild(dayHeader);
+            });
+            
+            // Get first day of month and number of days
+            const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+            const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay());
+            
+            // Generate calendar days
+            for (let i = 0; i < 42; i++) {
+                const cellDate = new Date(startDate);
+                cellDate.setDate(startDate.getDate() + i);
+                
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                
+                if (cellDate.getMonth() !== currentDate.getMonth()) {
+                    dayElement.classList.add('other-month');
+                }
+                
+                if (cellDate.toDateString() === new Date().toDateString()) {
+                    dayElement.classList.add('today');
+                }
+                
+                // Day number
+                const dayNumber = document.createElement('div');
+                dayNumber.className = 'day-number';
+                dayNumber.textContent = cellDate.getDate();
+                dayElement.appendChild(dayNumber);
+                
+                // Add events for this day
+                const dayEvents = getEventsForDay(cellDate);
+                dayEvents.forEach(event => {
+                    const eventElement = document.createElement('div');
+                    eventElement.className = `regatta-event ${getEventType(event.title, event.club)}`;
+                    eventElement.textContent = event.title;
+                    eventElement.onclick = () => showEventDetails(event);
+                    dayElement.appendChild(eventElement);
+                });
+                
+                calendar.appendChild(dayElement);
+            }
+        }
+
+        function getEventsForDay(date) {
+            return regattaData.filter(event => {
+                if (!event.dates || event.dates.length === 0) return false;
+                
+                // Simple date matching - could be improved
+                const eventDateStr = event.dates[0];
+                const dayStr = date.getDate().toString();
+                const monthNames = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+                    'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+                const monthStr = monthNames[date.getMonth()];
+                
+                return eventDateStr.includes(dayStr) && eventDateStr.includes(monthStr);
+            });
+        }
+
+        function showEventDetails(event) {
+            const modal = document.getElementById('eventModal');
+            const modalContent = document.getElementById('modalContent');
+            
+            modalContent.innerHTML = `
+                <h2>⛵ ${event.title}</h2>
+                <p><strong>📍 Club:</strong> ${event.club}</p>
+                <p><strong>📅 Date:</strong> ${event.dates.join(', ')}</p>
+                ${event.details ? `<p><strong>📋 Details:</strong> ${event.details}</p>` : ''}
+                <p><strong>🔗 Source:</strong> <a href="${event.source_url}" target="_blank">View original</a></p>
+                <p><strong>🕒 Found:</strong> ${new Date(event.scraped_at).toLocaleDateString()}</p>
+            `;
+            
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('eventModal').style.display = 'none';
+        }
+
+        function changeMonth(delta) {
+            currentDate.setMonth(currentDate.getMonth() + delta);
+            renderCalendar();
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('eventModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Initialize calendar
+        loadRegattaData();
+        
+        // Refresh data every 5 minutes
+        setInterval(loadRegattaData, 5 * 60 * 1000);
+    </script>
+</body>
+</html>
