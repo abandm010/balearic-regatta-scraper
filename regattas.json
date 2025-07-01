@@ -8,7 +8,7 @@
     "details": "VIII Trofeo Mestre Rafel - Optimist, Optimist D",
     "description": "V Trofeo Natalio Comas - ILCA 4, ILCA 6, ILCA 6 Master - 7 de septiembre de 2025 - VIII Trofeo Mestre Rafel - Optimist, Optimist D",
     "source_url": "https://www.cnportitxol.info/regatas/",
-    "scraped_at": "2025-06-30T12:15:01.796525"
+    "scraped_at": "2025-07-01T06:37:18.196306"
   },
   {
     "club": "CN Port d'Ítxol",
@@ -19,27 +19,27 @@
     "details": "VIII Trofeo President - Crucero ORC",
     "description": "VIII Trofeo Mestre Rafel - Optimist, Optimist D - 14 de septiembre de 2025 - VIII Trofeo President - Crucero ORC",
     "source_url": "https://www.cnportitxol.info/regatas/",
-    "scraped_at": "2025-06-30T12:15:01.796575"
+    "scraped_at": "2025-07-01T06:37:18.196354"
   },
   {
     "club": "Real Club Náutico de Palma",
     "title": "PRÓXIMAS REGATAS",
     "dates": [
       "22 de Noviembre de 2025",
-      "del 10 de Enero  al 15 de Diciembre de 2025",
-      "del 22 de Marzo  al 22 de Noviembre de 2025",
-      "15 de Diciembre de 2025",
-      "02 de Agosto de 2025",
-      "24 de Julio de 2025",
-      "del 05 de Junio  al 24 de Julio de 2025",
       "del 26 de Julio  al 02 de Agosto de 2025",
       "23 de Noviembre de 2025",
-      "del 06 de Abril  al 23 de Noviembre de 2025"
+      "02 de Agosto de 2025",
+      "del 06 de Abril  al 23 de Noviembre de 2025",
+      "del 05 de Junio  al 24 de Julio de 2025",
+      "del 22 de Marzo  al 22 de Noviembre de 2025",
+      "del 10 de Enero  al 15 de Diciembre de 2025",
+      "24 de Julio de 2025",
+      "15 de Diciembre de 2025"
     ],
     "details": "REGATAS FINALIZADAS",
     "description": "PRÓXIMAS REGATAS - 22 de Noviembre de 2025 - REGATAS FINALIZADAS",
     "source_url": "https://www.rcnp.es/regatas",
-    "scraped_at": "2025-06-30T12:15:05.800323"
+    "scraped_at": "2025-07-01T06:37:22.792087"
   },
   {
     "club": "CN Ciutadella",
@@ -50,7 +50,7 @@
     "details": "Más información",
     "description": "Liga anual cruceros. Trofeu BOSCH & LOZANO 2025 - 14 de diciembre de 2025 - Más información",
     "source_url": "https://regates.cnciutadella.com/es/default/races",
-    "scraped_at": "2025-06-30T12:15:18.054595"
+    "scraped_at": "2025-07-01T06:37:36.943007"
   },
   {
     "club": "CN Ciutadella",
@@ -61,7 +61,7 @@
     "details": "REGATA INTERCLUBS CIUTADELLA 2025",
     "description": "TROFEO SANT ANTONI 2025 - 03/05/2025 - REGATA INTERCLUBS CIUTADELLA 2025",
     "source_url": "https://regates.cnciutadella.com/es/default/races",
-    "scraped_at": "2025-06-30T12:15:18.055923"
+    "scraped_at": "2025-07-01T06:37:36.944320"
   },
   {
     "club": "CN Ciutadella",
@@ -72,7 +72,7 @@
     "details": "Liga primavera C.N.C.",
     "description": "REGATA INTERCLUBS CIUTADELLA 2025 - 28/04/2025 - Liga primavera C.N.C.",
     "source_url": "https://regates.cnciutadella.com/es/default/races",
-    "scraped_at": "2025-06-30T12:15:18.055956"
+    "scraped_at": "2025-07-01T06:37:36.944353"
   },
   {
     "club": "CN Ciutadella",
@@ -83,7 +83,7 @@
     "details": "Liga anual cruceros. Trofeu BOSCH & LOZANO 2025",
     "description": "REGATA 100 MILLES ENTRE ILLES 2025, CAMPEONATO DE ESPAÑA DE ALTURA - 18/04/2025 - Liga anual cruceros. Trofeu BOSCH & LOZANO 2025",
     "source_url": "https://regates.cnciutadella.com/es/default/races",
-    "scraped_at": "2025-06-30T12:15:18.056019"
+    "scraped_at": "2025-07-01T06:37:36.944415"
   },
   {
     "club": "CN Arenal",
@@ -94,7 +94,7 @@
     "details": "Liga SAIL4FUN",
     "description": "ES CALÓ WIND SERIES - 28/06/2025 - Liga SAIL4FUN",
     "source_url": "https://regatas.cnarenal.com/es/default/races",
-    "scraped_at": "2025-06-30T12:15:23.133384"
+    "scraped_at": "2025-07-01T06:37:41.878897"
   },
   {
     "club": "CN Arenal",
@@ -105,7 +105,7 @@
     "details": "ARENAL CUP 2",
     "description": "NORTH SAILS SUMMER SERIES - 14/06/2025 - ARENAL CUP 2",
     "source_url": "https://regatas.cnarenal.com/es/default/races",
-    "scraped_at": "2025-06-30T12:15:23.133447"
+    "scraped_at": "2025-07-01T06:37:41.878959"
   },
   {
     "club": "CN Arenal",
@@ -116,7 +116,7 @@
     "details": "ES CALÓ WINGFOIL SERIES - CAMPEONATO BALEARES",
     "description": "ARENAL CUP 2 - 08/06/2025 - ES CALÓ WINGFOIL SERIES - CAMPEONATO BALEARES",
     "source_url": "https://regatas.cnarenal.com/es/default/races",
-    "scraped_at": "2025-06-30T12:15:23.133494"
+    "scraped_at": "2025-07-01T06:37:41.878995"
   },
   {
     "club": "RCN Port de Pollença",
@@ -127,7 +127,7 @@
     "details": "TROFEU GALERIA MAIOR",
     "description": "REGATA FEMENINA, 8 i 9 de març - 08/03/2025 - TROFEU GALERIA MAIOR",
     "source_url": "https://regatas.rcnpp.club/es/default/races",
-    "scraped_at": "2025-06-30T12:15:31.385237"
+    "scraped_at": "2025-07-01T06:37:50.424876"
   },
   {
     "club": "RCN Port de Pollença",
@@ -138,6 +138,6 @@
     "details": "TROFEU ILLES BALEARS",
     "description": "TROFEU GALERIA MAIOR - 02/03/2025 - TROFEU ILLES BALEARS",
     "source_url": "https://regatas.rcnpp.club/es/default/races",
-    "scraped_at": "2025-06-30T12:15:31.385281"
+    "scraped_at": "2025-07-01T06:37:50.424921"
   }
 ]
