@@ -1,66 +1,9 @@
-def format_telegram_message(self, new_regattas: List[Dict]) -> str:
-        """Format new regattas for Telegram posting with clean visual design"""
-        if not new_regattas:
-            return ""
-        
-        # Sort events by club and date for better organization
-        sorted_regattas = sorted(new_regattas, key=lambda x: (x['club'], x['date']))
-        
-        message_parts = [
-            "⛵ Balearic Sailing Regattas ⛵",
-            f"**[View Full Calendar]({self.get_calendar_url()})**",
-            ""
-        ]
-        
-        # Track message length to stay under 4096 characters
-        current_length = len("\n".join(message_parts))
-        max_length = 3500  # Leave buffer for footer
-        
-        # Group by club for clean presentation
-        current_club = None
-        event_count = 0
-        
-        for regatta in sorted_regattas:
-            if current_length > max_length:
-                break
-                
-            event_count += 1
-            
-            # Add club separator if new club
-            if regatta['club'] != current_club:
-                if current_club is not None:  # Add separator between clubs
-                    message_parts.append("---")
-                current_club = regatta['club']
-            
-            # Get symbols and names for categorization
-            boat_symbol = regatta['boat_symbol']
-            boat_type_name = {
-                'yachts': 'Yachts',
-                'dinghies': 'Dinghies', 
-                'mixed': 'Mixed'
-            }.get(regatta['boat_type'], 'Mixed')
-            
-            # Get event type with colored emoji
-            event_type_display = {
-                'single_day': '🔵 Single Day',
-                'multi_day': '🟢 Multi-Day',
-                'series': '🔴 Series'
-            }.get(regatta['event_type'], '🔵 Single Day')
-            
-            # Format event entry in clean style
-            event_entry = [
-                f"{event_count}. {regatta['club']} {boat_symbol} {boat_type_name}",
-                f"   {regatta['title']}",
-                f"   {regatta['date']}",
-                f"   {event_type_display}",
-                f"   [More info]({regatta['url']})",
-                ""
-            ]#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
-Balearic Islands Sailing Regatta Scraper - SMART CATEGORIZED VERSION
+Balearic Islands Sailing Regatta Scraper - COMPLETE FIXED VERSION
 - Only sends Telegram messages when NEW events are found
-- Categorizes boats: Large Boats, Dinghies, Mixed
-- Color codes events: Blue (single day), Green (multi-day), Orange (series)
+- Categorizes boats: Yachts, Dinghies, Mixed
+- Color codes events: Blue (single day), Green (multi-day), Red (series)
 - Always updates calendar with all events
 """
 
@@ -253,15 +196,6 @@ class SmartRegattaScraper:
         }
         return color_map.get(event_type, '#4285f4')
 
-    def get_event_symbol(self, event_type: str) -> str:
-        """Get color symbol for event type"""
-        symbols = {
-            'single_day': 'BLUE',
-            'multi_day': 'GREEN',
-            'series': 'RED'
-        }
-        return symbols.get(event_type, 'BLUE')
-
     def get_boat_symbol(self, boat_type: str) -> str:
         """Get text symbol for boat type"""
         symbols = {
@@ -390,8 +324,7 @@ class SmartRegattaScraper:
                     'boat_type': boat_type,
                     'event_type': event_type,
                     'color': self.get_event_color(event_type),
-                    'boat_symbol': self.get_boat_symbol(boat_type),
-                    'event_symbol': self.get_event_symbol(event_type)
+                    'boat_symbol': self.get_boat_symbol(boat_type)
                 }
                 regattas.append(regatta)
         
@@ -459,8 +392,54 @@ class SmartRegattaScraper:
         # Fallback: return original text if translation fails
         return text
 
+    def format_date_standard(self, date_str: str) -> str:
+        """Convert Spanish date format to standard DD/MM/YYYY format"""
+        try:
+            # Spanish month names to numbers
+            spanish_months = {
+                'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04',
+                'mayo': '05', 'junio': '06', 'julio': '07', 'agosto': '08',
+                'septiembre': '09', 'octubre': '10', 'noviembre': '11', 'diciembre': '12'
+            }
+            
+            # Handle multi-day events (del X de mes al Y de mes de año)
+            multi_day_pattern = r'del\s+(\d{1,2})\s+de\s+(\w+)\s+al\s+(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})'
+            match = re.search(multi_day_pattern, date_str, re.IGNORECASE)
+            if match:
+                start_day, start_month, end_day, end_month, year = match.groups()
+                start_month_num = spanish_months.get(start_month.lower(), '01')
+                end_month_num = spanish_months.get(end_month.lower(), '12')
+                return f"{start_day.zfill(2)}/{start_month_num}/{year} - {end_day.zfill(2)}/{end_month_num}/{year}"
+            
+            # Handle single month range (del X al Y de mes de año)
+            single_month_pattern = r'del\s+(\d{1,2})\s+al\s+(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})'
+            match = re.search(single_month_pattern, date_str, re.IGNORECASE)
+            if match:
+                start_day, end_day, month, year = match.groups()
+                month_num = spanish_months.get(month.lower(), '01')
+                return f"{start_day.zfill(2)}/{month_num}/{year} - {end_day.zfill(2)}/{month_num}/{year}"
+            
+            # Handle single date (X de mes de año)
+            single_date_pattern = r'(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})'
+            match = re.search(single_date_pattern, date_str, re.IGNORECASE)
+            if match:
+                day, month, year = match.groups()
+                month_num = spanish_months.get(month.lower(), '01')
+                return f"{day.zfill(2)}/{month_num}/{year}"
+            
+            # Handle already formatted dates (DD/MM/YYYY)
+            if re.match(r'\d{1,2}[/-]\d{1,2}[/-]\d{4}', date_str):
+                return date_str.replace('-', '/')
+            
+            # Fallback: return original if no pattern matches
+            return date_str
+            
+        except Exception as e:
+            logger.warning(f"Date formatting failed for '{date_str}': {e}")
+            return date_str
+
     def format_telegram_message(self, new_regattas: List[Dict]) -> str:
-        """Format new regattas for Telegram posting with clean visual design"""
+        """Format new regattas for Telegram posting with clean visual design and emojis"""
         if not new_regattas:
             return ""
         
@@ -469,7 +448,7 @@ class SmartRegattaScraper:
         
         message_parts = [
             "⛵ Balearic Sailing Regattas ⛵",
-            f"**[View Full Calendar]({self.get_calendar_url()})**",
+            f"📅 **[View Full Calendar]({self.get_calendar_url()})**",
             ""
         ]
         
@@ -487,22 +466,37 @@ class SmartRegattaScraper:
                 
             event_count += 1
             
-            # Add club header if new club
+            # Add club separator if new club
             if regatta['club'] != current_club:
                 if current_club is not None:  # Add separator between clubs
                     message_parts.append("---")
                 current_club = regatta['club']
             
-            # Get symbols for categorization
+            # Get symbols and names for categorization
             boat_symbol = regatta['boat_symbol']
-            event_symbol = regatta['event_symbol'] 
+            boat_type_name = {
+                'yachts': 'Yachts',
+                'dinghies': 'Dinghies', 
+                'mixed': 'Mixed'
+            }.get(regatta['boat_type'], 'Mixed')
             
-            # Format event entry
+            # Get event type with colored emoji
+            event_type_display = {
+                'single_day': '🔵 Single Day',
+                'multi_day': '🟢 Multi-Day',
+                'series': '🔴 Series'
+            }.get(regatta['event_type'], '🔵 Single Day')
+            
+            # Format date to standard format
+            formatted_date = self.format_date_standard(regatta['date'])
+            
+            # Format event entry with emojis
             event_entry = [
-                f"{event_count}. {regatta['club']} {boat_symbol}",
-                f"   {regatta['title']}",
-                f"   {regatta['date']} [{event_symbol}]",
-                f"   [More info]({regatta['url']})",
+                f"{event_count}. {regatta['club']} {boat_symbol} {boat_type_name}",
+                f"🏆 {regatta['title']}",
+                f"📅 {formatted_date}",
+                f"{event_type_display}",
+                f"🔗 [More info]({regatta['url']})",
                 ""
             ]
             
@@ -521,7 +515,7 @@ class SmartRegattaScraper:
             "",
             "▲ Yachts | ● Dinghies | ■ Mixed Fleet",
             "🔵 Single Day | 🟢 Multi-Day | 🔴 Series",
-            f"*Updated: {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}*"
+            f"📅 Updated: {datetime.now().strftime('%d/%m/%Y %H:%M UTC')}"
         ]
         
         message_parts.extend(footer)
