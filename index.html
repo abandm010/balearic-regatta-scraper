@@ -15,32 +15,32 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: clamp(8px, 2vw, 20px);
+            padding: 20px;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.95);
-            border-radius: clamp(8px, 2vw, 20px);
-            padding: clamp(10px, 3vw, 30px);
+            border-radius: 20px;
+            padding: 30px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
         }
 
         .header {
             text-align: center;
-            margin-bottom: clamp(20px, 4vw, 40px);
+            margin-bottom: 40px;
         }
 
         .header h1 {
-            font-size: clamp(1.8rem, 5vw, 3rem);
+            font-size: 2.5rem;
             color: #2c3e50;
             margin-bottom: 10px;
             font-weight: 700;
         }
 
         .header p {
-            font-size: clamp(0.9rem, 2vw, 1.2rem);
+            font-size: 1.1rem;
             color: #7f8c8d;
             margin-bottom: 20px;
         }
@@ -49,18 +49,18 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: clamp(10px, 2vw, 20px);
-            margin-bottom: clamp(15px, 3vw, 30px);
-            padding: clamp(8px, 2vw, 15px);
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 15px;
             background: rgba(52, 152, 219, 0.1);
-            border-radius: clamp(8px, 2vw, 12px);
+            border-radius: 12px;
         }
 
         .legend-item {
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: clamp(0.7rem, 1.5vw, 0.9rem);
+            font-size: 0.9rem;
             font-weight: 600;
             color: #2c3e50;
         }
@@ -74,7 +74,7 @@
         }
 
         .legend-boat {
-            font-size: clamp(0.8rem, 1.8vw, 1rem);
+            font-size: 1rem;
             margin-right: 4px;
         }
 
@@ -82,18 +82,18 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: clamp(10px, 3vw, 20px);
-            margin-bottom: clamp(20px, 4vw, 30px);
+            gap: 20px;
+            margin-bottom: 30px;
         }
 
         .nav-button {
             background: #3498db;
             color: white;
             border: none;
-            padding: clamp(8px, 2vw, 12px) clamp(15px, 3vw, 20px);
-            border-radius: clamp(6px, 1.5vw, 10px);
+            padding: 12px 20px;
+            border-radius: 10px;
             cursor: pointer;
-            font-size: clamp(0.8rem, 1.8vw, 1rem);
+            font-size: 1rem;
             font-weight: 600;
             transition: all 0.3s ease;
         }
@@ -104,36 +104,36 @@
         }
 
         .current-month {
-            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            font-size: 1.8rem;
             font-weight: 700;
             color: #2c3e50;
-            min-width: clamp(150px, 25vw, 200px);
+            min-width: 200px;
             text-align: center;
         }
 
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: clamp(2px, 0.5vw, 4px);
+            gap: 4px;
             background: #ecf0f1;
-            padding: clamp(4px, 1vw, 8px);
-            border-radius: clamp(6px, 1.5vw, 12px);
+            padding: 8px;
+            border-radius: 12px;
         }
 
         .calendar-header {
             background: #34495e;
             color: white;
-            padding: clamp(8px, 2vw, 12px);
+            padding: 12px;
             text-align: center;
             font-weight: 600;
-            font-size: clamp(0.7rem, 1.4vw, 0.9rem);
+            font-size: 0.9rem;
         }
 
         .calendar-day {
             background: white;
-            min-height: clamp(80px, 12vw, 120px);
-            padding: clamp(4px, 1vw, 8px);
-            border-radius: clamp(4px, 1vw, 6px);
+            min-height: 100px;
+            padding: 8px;
+            border-radius: 6px;
             position: relative;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -156,24 +156,24 @@
         }
 
         .day-number {
-            font-size: clamp(0.8rem, 1.6vw, 1rem);
+            font-size: 1rem;
             font-weight: 600;
             color: #2c3e50;
-            margin-bottom: clamp(2px, 0.5vw, 4px);
+            margin-bottom: 4px;
         }
 
         .day-events {
             display: flex;
             flex-direction: column;
-            gap: clamp(1px, 0.3vw, 2px);
+            gap: 2px;
         }
 
         .event {
             background: #3498db;
             color: white;
-            padding: clamp(2px, 0.5vw, 4px);
-            border-radius: clamp(2px, 0.5vw, 4px);
-            font-size: clamp(0.55rem, 1vw, 0.7rem);
+            padding: 4px;
+            border-radius: 4px;
+            font-size: 0.7rem;
             font-weight: 500;
             line-height: 1.2;
             cursor: pointer;
@@ -189,11 +189,10 @@
         }
 
         .event-boat-symbol {
-            font-size: clamp(0.6rem, 1.2vw, 0.8rem);
+            font-size: 0.8rem;
             margin-right: 2px;
         }
 
-        /* Event type colors */
         .event.single-day {
             background: #4285f4;
         }
@@ -213,11 +212,11 @@
             left: 50%;
             transform: translate(-50%, -50%);
             background: white;
-            padding: clamp(15px, 3vw, 25px);
-            border-radius: clamp(8px, 2vw, 15px);
+            padding: 25px;
+            border-radius: 15px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
             z-index: 1000;
-            max-width: clamp(280px, 80vw, 400px);
+            max-width: 400px;
             width: 90%;
         }
 
@@ -226,7 +225,7 @@
         }
 
         .event-details h3 {
-            font-size: clamp(1rem, 2.5vw, 1.3rem);
+            font-size: 1.3rem;
             color: #2c3e50;
             margin-bottom: 10px;
             display: flex;
@@ -235,7 +234,7 @@
         }
 
         .event-details p {
-            font-size: clamp(0.8rem, 1.8vw, 1rem);
+            font-size: 1rem;
             color: #7f8c8d;
             margin-bottom: 8px;
         }
@@ -246,7 +245,7 @@
             right: 15px;
             background: none;
             border: none;
-            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            font-size: 1.5rem;
             cursor: pointer;
             color: #7f8c8d;
         }
@@ -255,10 +254,10 @@
             background: #3498db;
             color: white;
             border: none;
-            padding: clamp(8px, 2vw, 12px) clamp(15px, 3vw, 20px);
-            border-radius: clamp(6px, 1.5vw, 8px);
+            padding: 12px 20px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: clamp(0.8rem, 1.8vw, 1rem);
+            font-size: 1rem;
             font-weight: 600;
             margin-top: 10px;
             transition: all 0.3s ease;
@@ -285,36 +284,33 @@
 
         .loading {
             text-align: center;
-            padding: clamp(20px, 4vw, 40px);
-            font-size: clamp(1rem, 2vw, 1.2rem);
+            padding: 40px;
+            font-size: 1.2rem;
             color: #7f8c8d;
         }
 
         .error {
             text-align: center;
-            padding: clamp(20px, 4vw, 40px);
+            padding: 40px;
             color: #e74c3c;
-            font-size: clamp(1rem, 2vw, 1.2rem);
+            font-size: 1.2rem;
         }
 
-        /* Hide any random text that might appear */
-        body > div:last-child {
-            display: none;
-        }
-
-        /* Hide debug text */
-        div[style*="position: absolute"],
-        div[style*="bottom: 0"] {
-            display: none !important;
-        }
-
-        @media (max-width: 480px) {
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
             .calendar-day {
-                min-height: clamp(60px, 15vw, 80px);
+                min-height: 80px;
             }
             
             .event {
-                font-size: clamp(0.5rem, 1.2vw, 0.65rem);
+                font-size: 0.6rem;
             }
         }
     </style>
@@ -374,20 +370,14 @@
         let currentDate = new Date();
         let regattas = [];
 
-        // Load regatta data
         async function loadRegattas() {
             try {
                 const response = await fetch('regattas.json');
                 if (!response.ok) throw new Error('Failed to load regatta data');
                 const data = await response.json();
                 
-                // Validate and clean the data
                 regattas = data.filter(regatta => {
-                    return regatta && 
-                           regatta.title && 
-                           regatta.date && 
-                           regatta.club && 
-                           regatta.url;
+                    return regatta && regatta.title && regatta.date && regatta.club && regatta.url;
                 });
                 
                 console.log(`Loaded ${regattas.length} valid regattas`);
@@ -399,7 +389,6 @@
             }
         }
 
-        // Format date to DD/MM/YYYY
         function formatDate(date) {
             return date.toLocaleDateString('en-GB', {
                 day: '2-digit',
@@ -408,34 +397,28 @@
             });
         }
 
-        // Parse date from regatta data and standardize format
         function parseRegattaDate(dateStr) {
             try {
-                // Handle date ranges (DD/MM/YYYY - DD/MM/YYYY)
                 if (dateStr.includes(' - ')) {
                     const parts = dateStr.split(' - ');
                     const startDate = parts[0].trim();
-                    // For ranges, use the start date
                     if (startDate.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
                         const dateParts = startDate.split('/');
                         return new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
                     }
                 }
                 
-                // Handle DD/MM/YYYY format (already standard)
                 if (dateStr.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
                     const parts = dateStr.split('/');
                     return new Date(parts[2], parts[1] - 1, parts[0]);
                 }
                 
-                // Handle Spanish date format (X de mes de año)
                 const spanishMonths = {
                     'enero': 0, 'febrero': 1, 'marzo': 2, 'abril': 3,
                     'mayo': 4, 'junio': 5, 'julio': 6, 'agosto': 7,
                     'septiembre': 8, 'octubre': 9, 'noviembre': 10, 'diciembre': 11
                 };
                 
-                // Handle "del X de mes de año" format
                 let match = dateStr.match(/(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})/);
                 if (match) {
                     const day = parseInt(match[1]);
@@ -446,29 +429,6 @@
                     }
                 }
                 
-                // Handle "del X al Y de mes de año" format (multi-day)
-                match = dateStr.match(/del\s+(\d{1,2})\s+al\s+(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})/);
-                if (match) {
-                    const startDay = parseInt(match[1]);
-                    const month = spanishMonths[match[3].toLowerCase()];
-                    const year = parseInt(match[4]);
-                    if (month !== undefined) {
-                        return new Date(year, month, startDay);
-                    }
-                }
-                
-                // Handle "del X de mes al Y de mes de año" format
-                match = dateStr.match(/del\s+(\d{1,2})\s+de\s+(\w+)\s+al\s+(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})/);
-                if (match) {
-                    const startDay = parseInt(match[1]);
-                    const startMonth = spanishMonths[match[2].toLowerCase()];
-                    const year = parseInt(match[5]);
-                    if (startMonth !== undefined) {
-                        return new Date(year, startMonth, startDay);
-                    }
-                }
-                
-                // Fallback to Date constructor
                 return new Date(dateStr);
             } catch (error) {
                 console.warn('Could not parse date:', dateStr);
@@ -476,11 +436,10 @@
             }
         }
 
-        // Convert any date to standard DD/MM/YYYY format
         function standardizeDate(dateStr) {
             const date = parseRegattaDate(dateStr);
             if (!date || isNaN(date.getTime())) {
-                return dateStr; // Return original if parsing fails
+                return dateStr;
             }
             
             const day = String(date.getDate()).padStart(2, '0');
@@ -490,20 +449,17 @@
             return `${day}/${month}/${year}`;
         }
 
-        // Get events for a specific day
         function getEventsForDay(date) {
             const targetDate = formatDate(date);
             return regattas.filter(regatta => {
                 const regattaDate = parseRegattaDate(regatta.date);
                 if (!regattaDate || isNaN(regattaDate.getTime())) return false;
                 
-                // Check if the regatta date matches the target date
                 const regattaFormatted = formatDate(regattaDate);
                 return regattaFormatted === targetDate;
             });
         }
 
-        // Get event type class
         function getEventTypeClass(eventType) {
             switch(eventType) {
                 case 'single_day': return 'single-day';
@@ -513,7 +469,6 @@
             }
         }
 
-        // Get boat symbol
         function getBoatSymbol(boatType) {
             switch(boatType) {
                 case 'yachts': return '▲';
@@ -523,7 +478,6 @@
             }
         }
 
-        // Show event details by index
         function showEventDetailsByIndex(eventIndex) {
             const event = regattas[eventIndex];
             if (!event) return;
@@ -540,7 +494,6 @@
                 'mixed': '■ Mixed'
             }[event.boat_type] || '■ Mixed';
 
-            // Standardize the date for display
             const standardizedDate = standardizeDate(event.date);
 
             document.getElementById('eventDetailsContent').innerHTML = `
@@ -560,34 +513,33 @@
             document.getElementById('overlay').classList.add('show');
         }
 
-        // Render calendar
+        function closeEventDetails() {
+            document.getElementById('eventDetails').classList.remove('show');
+            document.getElementById('overlay').classList.remove('show');
+        }
+
         function renderCalendar() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
             
-            // Update month display
             const monthNames = [
                 'January', 'February', 'March', 'April', 'May', 'June',
                 'July', 'August', 'September', 'October', 'November', 'December'
             ];
             document.getElementById('currentMonth').textContent = `${monthNames[month]} ${year}`;
 
-            // Get first day of month and number of days
             const firstDay = new Date(year, month, 1);
             const lastDay = new Date(year, month + 1, 0);
             const daysInMonth = lastDay.getDate();
             const startingDayOfWeek = firstDay.getDay();
 
-            // Create calendar grid
             let calendarHTML = '';
             
-            // Add day headers
             const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
             dayHeaders.forEach(day => {
                 calendarHTML += `<div class="calendar-header">${day}</div>`;
             });
 
-            // Add empty cells for days before the first day of the month
             for (let i = 0; i < startingDayOfWeek; i++) {
                 const prevMonthDay = new Date(year, month, 0 - (startingDayOfWeek - 1 - i));
                 calendarHTML += `<div class="calendar-day other-month">
@@ -595,7 +547,6 @@
                 </div>`;
             }
 
-            // Add days of the month
             for (let day = 1; day <= daysInMonth; day++) {
                 const currentDay = new Date(year, month, day);
                 const isToday = formatDate(currentDay) === formatDate(new Date());
@@ -605,7 +556,7 @@
                 if (isToday) dayClass += ' today';
 
                 let eventsHTML = '';
-                events.slice(0, 3).forEach(event => { // Show max 3 events per day
+                events.slice(0, 3).forEach(event => {
                     const eventClass = getEventTypeClass(event.event_type);
                     const boatSymbol = getBoatSymbol(event.boat_type);
                     const eventIndex = regattas.indexOf(event);
@@ -629,7 +580,6 @@
                 `;
             }
 
-            // Add empty cells for days after the last day of the month
             const remainingCells = 42 - (startingDayOfWeek + daysInMonth);
             for (let i = 1; i <= remainingCells; i++) {
                 calendarHTML += `<div class="calendar-day other-month">
@@ -640,331 +590,13 @@
             document.getElementById('calendar').innerHTML = calendarHTML;
         }
 
-        // Show event details (deprecated - use showEventDetailsByIndex)
-        function showEventDetails(event) {
-            showEventDetailsByIndex(regattas.indexOf(event));
-        }
-
-        // Close event details
-        function closeEventDetails() {
-            document.getElementById('eventDetails').classList.remove('show');
-            document.getElementById('overlay').classList.remove('show');
-        }
-
-        // Change month
         function changeMonth(delta) {
             currentDate.setMonth(currentDate.getMonth() + delta);
             renderCalendar();
         }
 
-        // Initialize calendar
         loadRegattas();
         
-        // Close modal when clicking outside
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeEventDetails();
-            }
-        });
-    </script>
-</body>
-</html>align: center;
-            padding: clamp(20px, 4vw, 40px);
-            font-size: clamp(1rem, 2vw, 1.2rem);
-            color: #7f8c8d;
-        }
-
-        .error {
-            text-align: center;
-            padding: clamp(20px, 4vw, 40px);
-            color: #e74c3c;
-            font-size: clamp(1rem, 2vw, 1.2rem);
-        }
-
-        @media (max-width: 480px) {
-            .calendar-day {
-                min-height: clamp(60px, 15vw, 80px);
-            }
-            
-            .event {
-                font-size: clamp(0.5rem, 1.2vw, 0.65rem);
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>⛵ Balearic Sailing Calendar</h1>
-            <p>All sailing events across Mallorca, Menorca, Ibiza & Formentera</p>
-            
-            <div class="legend">
-                <div class="legend-item">
-                    <span class="legend-boat">▲</span>
-                    <span>Yachts</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-boat">●</span>
-                    <span>Dinghies</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-boat">■</span>
-                    <span>Mixed</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #4285f4;"></div>
-                    <span>Single Day</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #34a853;"></div>
-                    <span>Multi-Day</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #ff9800;"></div>
-                    <span>Series</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="calendar-controls">
-            <button class="nav-button" onclick="changeMonth(-1)">← Previous</button>
-            <div class="current-month" id="currentMonth"></div>
-            <button class="nav-button" onclick="changeMonth(1)">Next →</button>
-        </div>
-
-        <div id="calendar" class="calendar-grid">
-            <div class="loading">Loading sailing events...</div>
-        </div>
-    </div>
-
-    <div class="overlay" id="overlay" onclick="closeEventDetails()"></div>
-    <div class="event-details" id="eventDetails">
-        <button class="close-btn" onclick="closeEventDetails()">×</button>
-        <div id="eventDetailsContent"></div>
-    </div>
-
-    <script>
-        let currentDate = new Date();
-        let regattas = [];
-
-        // Load regatta data
-        async function loadRegattas() {
-            try {
-                const response = await fetch('regattas.json');
-                if (!response.ok) throw new Error('Failed to load regatta data');
-                regattas = await response.json();
-                renderCalendar();
-            } catch (error) {
-                console.error('Error loading regattas:', error);
-                document.getElementById('calendar').innerHTML = 
-                    '<div class="error">Unable to load sailing events. Please try again later.</div>';
-            }
-        }
-
-        // Format date to DD/MM/YYYY
-        function formatDate(date) {
-            return date.toLocaleDateString('en-GB', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
-            });
-        }
-
-        // Parse date from regatta data (handle various formats)
-        function parseRegattaDate(dateStr) {
-            try {
-                // Handle DD/MM/YYYY format
-                if (dateStr.includes('/')) {
-                    const parts = dateStr.split('/');
-                    if (parts.length === 3) {
-                        return new Date(parts[2], parts[1] - 1, parts[0]);
-                    }
-                }
-                
-                // Handle Spanish date format
-                const spanishMonths = {
-                    'enero': 0, 'febrero': 1, 'marzo': 2, 'abril': 3,
-                    'mayo': 4, 'junio': 5, 'julio': 6, 'agosto': 7,
-                    'septiembre': 8, 'octubre': 9, 'noviembre': 10, 'diciembre': 11
-                };
-                
-                // Handle "del X de mes de año" format
-                const match = dateStr.match(/(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})/);
-                if (match) {
-                    const day = parseInt(match[1]);
-                    const month = spanishMonths[match[2].toLowerCase()];
-                    const year = parseInt(match[3]);
-                    if (month !== undefined) {
-                        return new Date(year, month, day);
-                    }
-                }
-                
-                // Fallback to Date constructor
-                return new Date(dateStr);
-            } catch (error) {
-                console.warn('Could not parse date:', dateStr);
-                return null;
-            }
-        }
-
-        // Get events for a specific day
-        function getEventsForDay(date) {
-            const targetDate = formatDate(date);
-            return regattas.filter(regatta => {
-                const regattaDate = parseRegattaDate(regatta.date);
-                if (!regattaDate) return false;
-                
-                // Check if the regatta date matches the target date
-                return formatDate(regattaDate) === targetDate;
-            });
-        }
-
-        // Get event type class
-        function getEventTypeClass(eventType) {
-            switch(eventType) {
-                case 'single_day': return 'single-day';
-                case 'multi_day': return 'multi-day';
-                case 'series': return 'series';
-                default: return 'single-day';
-            }
-        }
-
-        // Get boat symbol
-        function getBoatSymbol(boatType) {
-            switch(boatType) {
-                case 'yachts': return '▲';
-                case 'dinghies': return '●';
-                case 'mixed': return '■';
-                default: return '■';
-            }
-        }
-
-        // Render calendar
-        function renderCalendar() {
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
-            
-            // Update month display
-            const monthNames = [
-                'January', 'February', 'March', 'April', 'May', 'June',
-                'July', 'August', 'September', 'October', 'November', 'December'
-            ];
-            document.getElementById('currentMonth').textContent = `${monthNames[month]} ${year}`;
-
-            // Get first day of month and number of days
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-            const daysInMonth = lastDay.getDate();
-            const startingDayOfWeek = firstDay.getDay();
-
-            // Create calendar grid
-            let calendarHTML = '';
-            
-            // Add day headers
-            const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            dayHeaders.forEach(day => {
-                calendarHTML += `<div class="calendar-header">${day}</div>`;
-            });
-
-            // Add empty cells for days before the first day of the month
-            for (let i = 0; i < startingDayOfWeek; i++) {
-                const prevMonthDay = new Date(year, month, 0 - (startingDayOfWeek - 1 - i));
-                calendarHTML += `<div class="calendar-day other-month">
-                    <div class="day-number">${prevMonthDay.getDate()}</div>
-                </div>`;
-            }
-
-            // Add days of the month
-            for (let day = 1; day <= daysInMonth; day++) {
-                const currentDay = new Date(year, month, day);
-                const isToday = formatDate(currentDay) === formatDate(new Date());
-                const events = getEventsForDay(currentDay);
-
-                let dayClass = 'calendar-day';
-                if (isToday) dayClass += ' today';
-
-                let eventsHTML = '';
-                events.slice(0, 3).forEach(event => { // Show max 3 events per day
-                    const eventClass = getEventTypeClass(event.event_type);
-                    const boatSymbol = getBoatSymbol(event.boat_type);
-                    eventsHTML += `
-                        <div class="event ${eventClass}" onclick="showEventDetails(${JSON.stringify(event).replace(/"/g, '&quot;')})">
-                            <span class="event-boat-symbol">${boatSymbol}</span>
-                            <span>${event.title.substring(0, 20)}${event.title.length > 20 ? '...' : ''}</span>
-                        </div>
-                    `;
-                });
-
-                if (events.length > 3) {
-                    eventsHTML += `<div class="event" style="background: #95a5a6; font-size: 0.6rem;">+${events.length - 3} more</div>`;
-                }
-
-                calendarHTML += `
-                    <div class="${dayClass}">
-                        <div class="day-number">${day}</div>
-                        <div class="day-events">${eventsHTML}</div>
-                    </div>
-                `;
-            }
-
-            // Add empty cells for days after the last day of the month
-            const remainingCells = 42 - (startingDayOfWeek + daysInMonth);
-            for (let i = 1; i <= remainingCells; i++) {
-                calendarHTML += `<div class="calendar-day other-month">
-                    <div class="day-number">${i}</div>
-                </div>`;
-            }
-
-            document.getElementById('calendar').innerHTML = calendarHTML;
-        }
-
-        // Show event details
-        function showEventDetails(event) {
-            const eventTypeDisplay = {
-                'single_day': '🔵 Single Day',
-                'multi_day': '🟢 Multi-Day',
-                'series': '🔴 Series'
-            }[event.event_type] || '🔵 Single Day';
-            
-            const boatTypeDisplay = {
-                'yachts': '▲ Yachts',
-                'dinghies': '● Dinghies',
-                'mixed': '■ Mixed'
-            }[event.boat_type] || '■ Mixed';
-
-            document.getElementById('eventDetailsContent').innerHTML = `
-                <h3>${getBoatSymbol(event.boat_type)} ${event.title}</h3>
-                <p><strong>📅 Date:</strong> ${event.date}</p>
-                <p><strong>📍 Club:</strong> ${event.club}</p>
-                <p><strong>🏝️ Location:</strong> ${event.location}</p>
-                <p><strong>⛵ Type:</strong> ${boatTypeDisplay}</p>
-                <p><strong>🗓️ Format:</strong> ${eventTypeDisplay}</p>
-                ${event.details ? `<p><strong>ℹ️ Details:</strong> ${event.details}</p>` : ''}
-                <button class="visit-btn" onclick="window.open('${event.url}', '_blank')">
-                    🔗 Visit Club Website
-                </button>
-            `;
-            
-            document.getElementById('eventDetails').classList.add('show');
-            document.getElementById('overlay').classList.add('show');
-        }
-
-        // Close event details
-        function closeEventDetails() {
-            document.getElementById('eventDetails').classList.remove('show');
-            document.getElementById('overlay').classList.remove('show');
-        }
-
-        // Change month
-        function changeMonth(delta) {
-            currentDate.setMonth(currentDate.getMonth() + delta);
-            renderCalendar();
-        }
-
-        // Initialize calendar
-        loadRegattas();
-        
-        // Close modal when clicking outside
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeEventDetails();
