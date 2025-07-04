@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """
-Balearic Islands Sailing Regatta Scraper - FINAL IMPROVED VERSION
-Scrapes regatta information from sailing club websites and posts to Telegram
-Includes: Date filtering, content filtering, better translations, calendar link
+Balearic Islands Sailing Regatta Scraper - SMART CATEGORIZED VERSION
+- Only sends Telegram messages when NEW events are found
+- Categorizes boats: Large Boats, Dinghies, Mixed
+- Color codes events: Blue (single day), Green (multi-day), Orange (series)
+- Always updates calendar with all events
 """
 
 import requests
@@ -10,477 +12,617 @@ from bs4 import BeautifulSoup
 import re
 from datetime import datetime, timedelta
 import json
-import time
-import logging
 import os
-import urllib.parse
+import logging
+import time
+from typing import List, Dict, Set
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-class RegattaScraper:
+class SmartRegattaScraper:
     def __init__(self, telegram_bot_token=None, telegram_chat_id=None):
+        self.telegram_bot_token = telegram_bot_token
+        self.telegram_chat_id = telegram_chat_id
         self.session = requests.Session()
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         })
         
-        # Telegram setup
-        self.telegram_bot_token = telegram_bot_token
-        self.telegram_chat_id = telegram_chat_id
-        
-        # Keywords to identify regatta content (improved list)
-        self.regatta_keywords = [
-            # Spanish
-            'regata', 'copa', 'trofeo', 'campeonato', 'competición', 'torneo', 
-            'inscripción', 'inscripciones', 'calendario', 'evento', 'series',
-            'vuelta', 'memorial', 'navegación', 'vela', 'náutico',
-            # Catalan  
-            'regata', 'competició', 'torneig', 'campionat', 'inscripció', 'inscripcions',
-            'calendari', 'esdeveniment', 'vela', 'nàutic', 'trofeu',
-            # English
-            'regatta', 'race', 'sailing', 'competition', 'championship', 'registration',
-            'event', 'tournament', 'yacht', 'boat', 'cup', 'trophy',
-            # German
-            'regatta', 'wettfahrt', 'segelregatta', 'wettbewerb', 'meisterschaft',
-            'anmeldung', 'veranstaltung', 'segeln',
-            # Special event names
-            'mapfre', 'palmavela', 'princesa', 'sofia'
+        # Boat category keywords
+        self.yacht_keywords = [
+            'orc', 'swan', 'j70', 'j/70', 'crucero', 'cruceros', 'cruising', 
+            'keelboat', 'maxi', 'phrf', 'irc', 'crf', 'open', 'big boat',
+            'yacht', 'monohull', 'multihull', 'catamaran', 'trimaran'
         ]
         
-        # FILTER OUT: Administrative/irrelevant content
-        self.exclude_keywords = [
-            'results', 'resultados', 'resultado', 'resultat',
-            'latest news', 'noticias', 'notícies', 'news',
-            'regattas office', 'oficina de regatas', 'oficina',
-            'finished regatta', 'regata finalizada', 'regata acabada',
-            'next tank tops', 'próximas camisetas',
-            'read more', 'leer más', 'llegir més', 'more information',
-            'this sunday has begun', 'este domingo ha comenzado'
+        self.dinghy_keywords = [
+            'optimist', 'optimista', 'laser', 'ilca', '420', 'snipe', 'dragon',
+            'dragón', 'cadet', 'europe', 'finn', 'radial', 'standard', 'dinghy',
+            'single handed', 'double handed', 'youth', 'junior', 'cadete'
         ]
         
-        # Improved date patterns for Spanish dates
-        self.date_patterns = [
-            r'\bdel\s+\d{1,2}\s+de\s+\w+\s+al\s+\d{1,2}\s+de\s+\w+\s+de\s+\d{4}\b',  # del X de mes al Y de mes de año
-            r'\bdel\s+\d{1,2}\s+al\s+\d{1,2}\s+de\s+\w+\s+de\s+\d{4}\b',  # del X al Y de mes de año
-            r'\b\d{1,2}\s+de\s+\w+\s+de\s+\d{4}\b',  # X de mes de año
-            r'\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b',  # DD/MM/YYYY
-            r'\b\d{4}-\d{1,2}-\d{1,2}\b',  # YYYY-MM-DD
-            r'\b\w+\s+\d{1,2},?\s+\d{4}\b',  # Month DD, YYYY
+        # Event type keywords
+        self.series_keywords = [
+            'series', 'liga', 'championship', 'campeonato', 'circuit', 'circuito',
+            'anual', 'annual', 'temporada', 'season', 'ranking'
         ]
         
-        # Sailing-specific translation dictionary
-        self.sailing_translations = {
-            'optimistic': 'optimist',
-            'ilca': 'ILCA',
-            'orc': 'ORC',
-            'crucero': 'cruiser',
-            'vela latina': 'latin sail',
-            'master': 'Masters',
-            'trofeo': 'trophy',
-            'copa': 'cup',
-            'campeonato': 'championship'
+        # Balearic Islands sailing clubs
+        self.clubs = [
+            {
+                'name': 'CN Port d\'Ítxol',
+                'url': 'https://www.cnportitxol.info/regatas/',
+                'location': 'Mallorca'
+            },
+            {
+                'name': 'La Ruta de la Sal',
+                'url': 'https://larutadelasal.com/',
+                'location': 'Mallorca'
+            },
+            {
+                'name': 'Copa del Rey MAPFRE',
+                'url': 'https://www.regatacopadelrey.com/home',
+                'location': 'Mallorca'
+            },
+            {
+                'name': 'Trofeo Conde de Godó',
+                'url': 'https://www.trofeocondegodo.com/',
+                'location': 'Mallorca'
+            },
+            {
+                'name': 'PalmaVela',
+                'url': 'https://www.palmavela.com/',
+                'location': 'Mallorca'
+            },
+            {
+                'name': 'Real Club Náutico de Palma',
+                'url': 'https://www.rcnp.es/regatas',
+                'location': 'Mallorca'
+            },
+            {
+                'name': 'CN Ciutadella',
+                'url': 'https://regates.cnciutadella.com/es/default/races',
+                'location': 'Menorca'
+            },
+            {
+                'name': 'CN Arenal',
+                'url': 'https://regatas.cnarenal.com/es/default/races',
+                'location': 'Mallorca'
+            },
+            {
+                'name': 'Regata Ophiusa',
+                'url': 'https://www.regataophiusa.com/pag_2/index.php',
+                'location': 'Formentera'
+            },
+            {
+                'name': 'Club Marítimo San Antonio',
+                'url': 'https://www.cmsap.com/en/default/races/calendar',
+                'location': 'Ibiza'
+            },
+            {
+                'name': 'CN Colonia Sant Jordi',
+                'url': 'https://cncoloniasp.com/regatas/',
+                'location': 'Mallorca'
+            },
+            {
+                'name': 'CV Port d\'Andratx',
+                'url': 'http://regatas.cvpa.es/es/default/races/calendar/year/2025/all/1',
+                'location': 'Mallorca'
+            },
+            {
+                'name': 'CN Ràpita',
+                'url': 'https://regatas.cnrapita.com/es/default/races',
+                'location': 'Mallorca'
+            }
+        ]
+
+    def create_event_signature(self, regatta: Dict) -> str:
+        """Create a unique signature for each event"""
+        return f"{regatta.get('title', '')}-{regatta.get('date', '')}-{regatta.get('club', '')}"
+
+    def load_previous_events(self, filename='previous_events.json') -> Set[str]:
+        """Load previously found events"""
+        try:
+            if os.path.exists(filename):
+                with open(filename, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    return set(data.get('event_signatures', []))
+            return set()
+        except Exception as e:
+            logger.error(f"Error loading previous events: {e}")
+            return set()
+
+    def save_current_events(self, event_signatures: Set[str], filename='previous_events.json'):
+        """Save current events for next comparison"""
+        try:
+            data = {
+                'event_signatures': list(event_signatures),
+                'last_updated': datetime.now().isoformat()
+            }
+            with open(filename, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=2)
+        except Exception as e:
+            logger.error(f"Error saving current events: {e}")
+
+    def categorize_boat_type(self, text: str) -> str:
+        """Categorize boat type based on text content"""
+        text_lower = text.lower()
+        
+        # Check for yacht keywords
+        for keyword in self.yacht_keywords:
+            if keyword in text_lower:
+                return 'yachts'
+        
+        # Check for dinghy keywords
+        for keyword in self.dinghy_keywords:
+            if keyword in text_lower:
+                return 'dinghies'
+        
+        # Default to mixed if unclear
+        return 'mixed'
+
+    def categorize_event_type(self, title: str, date_str: str, details: str) -> str:
+        """Categorize event type based on date patterns and keywords"""
+        combined_text = f"{title} {date_str} {details}".lower()
+        
+        # Check for series keywords
+        for keyword in self.series_keywords:
+            if keyword in combined_text:
+                return 'series'
+        
+        # Check date patterns for multi-day events
+        multi_day_patterns = [
+            r'del\s+\d{1,2}\s+de\s+\w+\s+al\s+\d{1,2}\s+de\s+\w+',  # del X de mes al Y de mes
+            r'del\s+\d{1,2}\s+al\s+\d{1,2}\s+de\s+\w+',  # del X al Y de mes
+            r'\d{1,2}\s*-\s*\d{1,2}\s+\w+',  # 26-28 July
+            r'\d{1,2}/\d{1,2}\s*-\s*\d{1,2}/\d{1,2}'  # 26/7 - 28/7
+        ]
+        
+        for pattern in multi_day_patterns:
+            if re.search(pattern, date_str.lower()):
+                return 'multi_day'
+        
+        # Default to single day
+        return 'single_day'
+
+    def get_event_color(self, event_type: str) -> str:
+        """Get color code for event type"""
+        color_map = {
+            'single_day': '#4285f4',    # Blue
+            'multi_day': '#34a853',     # Green
+            'series': '#ff9800'         # Orange
         }
+        return color_map.get(event_type, '#4285f4')
 
-    def is_future_event(self, date_str):
-        """Check if event date is in the future (2025 or later, after current date)"""
+    def get_event_symbol(self, event_type: str) -> str:
+        """Get color symbol for event type"""
+        symbols = {
+            'single_day': 'BLUE',
+            'multi_day': 'GREEN',
+            'series': 'RED'
+        }
+        return symbols.get(event_type, 'BLUE')
+
+    def get_boat_symbol(self, boat_type: str) -> str:
+        """Get text symbol for boat type"""
+        symbols = {
+            'yachts': '▲',
+            'dinghies': '●',
+            'mixed': '■'
+        }
+        return symbols.get(boat_type, '■')
+
+    def identify_new_events(self, current_regattas: List[Dict]) -> List[Dict]:
+        """Identify which events are new since last run"""
+        previous_signatures = self.load_previous_events()
+        current_signatures = set()
+        new_events = []
+        
+        for regatta in current_regattas:
+            signature = self.create_event_signature(regatta)
+            current_signatures.add(signature)
+            
+            if signature not in previous_signatures:
+                new_events.append(regatta)
+        
+        # Save current signatures for next run
+        self.save_current_events(current_signatures)
+        
+        logger.info(f"Found {len(new_events)} new events out of {len(current_regattas)} total events")
+        return new_events
+
+    def scrape_club_regattas(self, club_info: Dict) -> List[Dict]:
+        """Scrape regatta information from a specific club"""
+        regattas = []
+        
         try:
-            current_date = datetime.now()
+            logger.info(f"Processing {club_info['name']}...")
             
-            # Extract year from date string
-            year_match = re.search(r'\b(20\d{2})\b', date_str)
-            if year_match:
-                year = int(year_match.group(1))
-                # Only accept events from 2025 onwards
-                if year < 2025:
-                    return False
-                # For 2025 events, check if they're after current date
-                if year == 2025:
-                    # Simple month check for 2025 events
-                    month_names = {
-                        'enero': 1, 'febrero': 2, 'marzo': 3, 'abril': 4, 'mayo': 5, 'junio': 6,
-                        'julio': 7, 'agosto': 8, 'septiembre': 9, 'octubre': 10, 'noviembre': 11, 'diciembre': 12
-                    }
-                    for month_name, month_num in month_names.items():
-                        if month_name in date_str.lower():
-                            # If it's a month that has passed in 2025, exclude it
-                            if month_num < current_date.month:
-                                return False
-                            break
-                return True
+            response = self.session.get(club_info['url'], timeout=8)
+            response.raise_for_status()
             
-            # If no year found, assume it's current year and check if reasonable
-            return True
+            soup = BeautifulSoup(response.content, 'html.parser')
+            text_content = soup.get_text()
             
-        except:
-            # If date parsing fails, include the event (better safe than sorry)
-            return True
+            # Extract regatta information
+            found_regattas = self.extract_regatta_info(text_content, club_info)
+            
+            if found_regattas:
+                logger.info(f"Found {len(found_regattas)} regattas at {club_info['name']}")
+                regattas.extend(found_regattas)
+            else:
+                logger.info(f"No regattas found at {club_info['name']}")
+                
+        except Exception as e:
+            logger.error(f"Error scraping {club_info['name']}: {e}")
+            
+        return regattas
 
-    def is_relevant_regatta(self, title, details):
-        """Check if this is a relevant regatta (not results, news, etc.)"""
-        combined_text = f"{title} {details}".lower()
+    def extract_regatta_info(self, text: str, club_info: Dict) -> List[Dict]:
+        """Extract regatta information from text content with categorization"""
+        regattas = []
         
-        # Check if it contains excluded keywords
-        for exclude_word in self.exclude_keywords:
-            if exclude_word.lower() in combined_text:
-                return False
+        # Enhanced regatta keywords
+        regatta_keywords = [
+            'regata', 'copa', 'trofeo', 'campeonato', 'series', 'vuelta',
+            'memorial', 'challenge', 'open', 'master', 'junior', 'youth'
+        ]
         
-        # Check for garbled text (too many question marks)
-        if '????????' in combined_text:
-            return False
+        # Filter content
+        filtered_keywords = [
+            'resultado', 'results', 'clasificación', 'classification',
+            'inscripción', 'registration', 'noticias', 'news', 'archivo',
+            'archive', 'galería', 'gallery', 'contacto', 'contact'
+        ]
+        
+        # Date patterns
+        date_patterns = [
+            r'\bdel\s+\d{1,2}\s+de\s+\w+\s+al\s+\d{1,2}\s+de\s+\w+\s+de\s+\d{4}\b',
+            r'\bdel\s+\d{1,2}\s+al\s+\d{1,2}\s+de\s+\w+\s+de\s+\d{4}\b',
+            r'\b\d{1,2}\s+de\s+\w+\s+de\s+\d{4}\b',
+            r'\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b'
+        ]
+        
+        # Split text into manageable chunks
+        lines = text.split('\n')
+        
+        for i, line in enumerate(lines):
+            line = line.strip()
+            if len(line) < 10:
+                continue
             
-        # Must contain at least one regatta keyword
-        has_regatta_keyword = any(
-            keyword.lower() in combined_text 
-            for keyword in self.regatta_keywords
-        )
+            # Check if line contains regatta keywords
+            has_regatta_keyword = any(keyword in line.lower() for keyword in regatta_keywords)
+            
+            # Skip filtered content
+            if any(keyword in line.lower() for keyword in filtered_keywords):
+                continue
+            
+            # Look for dates in current and next few lines
+            dates_found = []
+            details_text = ""
+            
+            # Check current line and next 2 lines for dates and details
+            for j in range(min(3, len(lines) - i)):
+                check_line = lines[i + j].strip()
+                
+                for pattern in date_patterns:
+                    matches = re.findall(pattern, check_line, re.IGNORECASE)
+                    dates_found.extend(matches)
+                
+                if j > 0:  # Collect details from subsequent lines
+                    details_text += " " + check_line
+            
+            # Filter dates to only include future events
+            valid_dates = self.filter_future_dates(dates_found)
+            
+            if has_regatta_keyword and valid_dates:
+                # Categorize the event
+                boat_type = self.categorize_boat_type(line + " " + details_text)
+                event_type = self.categorize_event_type(line, valid_dates[0], details_text)
+                
+                regatta = {
+                    'title': self.clean_title(line),
+                    'date': valid_dates[0],
+                    'details': details_text.strip()[:200],  # Limit details length
+                    'club': club_info['name'],
+                    'location': club_info['location'],
+                    'url': club_info['url'],
+                    'boat_type': boat_type,
+                    'event_type': event_type,
+                    'color': self.get_event_color(event_type),
+                    'boat_symbol': self.get_boat_symbol(boat_type),
+                    'event_symbol': self.get_event_symbol(event_type)
+                }
+                regattas.append(regatta)
         
-        return has_regatta_keyword
+        return regattas
 
-    def translate_to_english_improved(self, text):
-        """Improved translation with sailing-specific terms"""
+    def filter_future_dates(self, dates: List[str]) -> List[str]:
+        """Filter out past dates, only return future events"""
+        future_dates = []
+        current_date = datetime.now()
+        
+        for date_str in dates:
+            try:
+                # Extract year from date string
+                year_match = re.search(r'\b(202[5-9]|20[3-9]\d)\b', date_str)
+                if year_match:
+                    year = int(year_match.group(1))
+                    if year >= current_date.year:
+                        future_dates.append(date_str)
+            except:
+                continue
+        
+        return future_dates
+
+    def clean_title(self, title: str) -> str:
+        """Clean and format regatta title"""
+        # Remove extra whitespace and special characters
+        title = re.sub(r'\s+', ' ', title)
+        title = re.sub(r'[^\w\s\-\.\/\(\)áéíóúñçüÁÉÍÓÚÑÇÜ]', '', title)
+        return title.strip()
+
+    def translate_text(self, text: str, target_lang: str = 'en') -> str:
+        """Simple translation with fallback"""
         try:
-            # First, apply sailing-specific translations
-            improved_text = text
-            for spanish_term, english_term in self.sailing_translations.items():
-                improved_text = re.sub(rf'\b{spanish_term}\b', english_term, improved_text, flags=re.IGNORECASE)
+            # First apply manual translations for sailing terms
+            sailing_terms = {
+                'regata': 'regatta', 'regatas': 'regattas', 'vela': 'sailing',
+                'competición': 'competition', 'campeonato': 'championship',
+                'trofeo': 'trophy', 'copa': 'cup', 'crucero': 'cruising',
+                'optimist': 'optimist', 'optimista': 'optimist', 'dragón': 'dragon'
+            }
             
-            # Use the simple web interface approach
+            translated_text = text
+            for spanish, english in sailing_terms.items():
+                translated_text = re.sub(r'\b' + spanish + r'\b', english, translated_text, flags=re.IGNORECASE)
+            
+            # Simple Google Translate API call with short timeout
             url = 'https://translate.googleapis.com/translate_a/single'
             params = {
                 'client': 'gtx',
                 'sl': 'auto',
-                'tl': 'en',
+                'tl': target_lang,
                 'dt': 't',
-                'q': improved_text[:500]  # Limit length to avoid issues
+                'q': translated_text
             }
             
-            response = requests.get(url, params=params, timeout=10)
+            response = requests.get(url, params=params, timeout=3)
             if response.status_code == 200:
                 result = response.json()
-                if result and len(result) > 0 and len(result[0]) > 0:
-                    translated = result[0][0][0]
-                    detected_lang = result[2] if len(result) > 2 else 'unknown'
-                    
-                    # Post-process translation for better sailing terms
-                    translated = re.sub(r'\boptimistic\b', 'Optimist', translated, flags=re.IGNORECASE)
-                    translated = re.sub(r'\bilca\b', 'ILCA', translated, flags=re.IGNORECASE)
-                    translated = re.sub(r'\borc\b', 'ORC', translated, flags=re.IGNORECASE)
-                    
-                    return translated, detected_lang
-            
-            # If translation fails, return improved original text
-            return improved_text, 'unknown'
+                if result and result[0]:
+                    return result[0][0][0]
             
         except Exception as e:
-            logger.warning(f"Translation failed: {str(e)}, returning original text")
-            return text, 'unknown'
+            logger.warning(f"Translation failed, using original text: {e}")
+        
+        # Fallback: return original text if translation fails
+        return text
 
-    def send_to_telegram(self, message):
-        """Send message to Telegram group with improved error handling"""
-        if not self.telegram_bot_token or not self.telegram_chat_id:
-            logger.warning("Telegram credentials not provided, skipping send")
-            return False
-            
-        try:
-            url = f"https://api.telegram.org/bot{self.telegram_bot_token}/sendMessage"
-            
-            # Split long messages
-            max_length = 4000
-            if len(message) > max_length:
-                messages = [message[i:i+max_length] for i in range(0, len(message), max_length)]
-            else:
-                messages = [message]
-            
-            for msg in messages:
-                data = {
-                    'chat_id': self.telegram_chat_id,
-                    'text': msg,
-                    'parse_mode': 'Markdown',
-                    'disable_web_page_preview': False
-                }
-                
-                response = requests.post(url, data=data, timeout=10)
-                response.raise_for_status()
-                time.sleep(1)  # Rate limiting
-            
-            logger.info(f"Sent {len(messages)} message(s) to Telegram successfully")
-            return True
-            
-        except Exception as e:
-            logger.error(f"Error sending to Telegram: {str(e)}")
-            return False
-
-    def scrape_club(self, club_name, url, timeout=15):
-        """
-        Scrape regatta information from a sailing club website with improved error handling
-        """
-        try:
-            logger.info(f"Scraping {club_name}: {url}")
-            
-            response = self.session.get(url, timeout=timeout)
-            response.raise_for_status()
-            
-            soup = BeautifulSoup(response.content, 'html.parser')
-            
-            # Remove script and style elements
-            for script in soup(["script", "style"]):
-                script.decompose()
-            
-            # Get text content
-            text = soup.get_text()
-            
-            # Extract regatta events using improved logic
-            regattas = self.extract_regatta_events(text, url, club_name)
-            
-            logger.info(f"Found {len(regattas)} relevant regattas at {club_name}")
-            return regattas
-            
-        except requests.exceptions.Timeout:
-            logger.error(f"Timeout scraping {club_name} ({url})")
-            return []
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Request error scraping {club_name} ({url}): {str(e)}")
-            return []
-        except Exception as e:
-            logger.error(f"Unexpected error scraping {club_name} ({url}): {str(e)}")
-            return []
-
-    def extract_regatta_events(self, text, source_url, club_name):
-        """Extract regatta events using improved multi-line pattern matching with filtering"""
-        regattas = []
-        
-        # Split text into lines and clean
-        lines = [line.strip() for line in text.split('\n') if line.strip()]
-        
-        # Look for regatta events as groups: title + date + details
-        for i in range(len(lines) - 1):
-            current_line = lines[i]
-            next_line = lines[i + 1] if i + 1 < len(lines) else ''
-            third_line = lines[i + 2] if i + 2 < len(lines) else ''
-            
-            # Skip very short or very long lines
-            if len(current_line) < 5 or len(current_line) > 200:
-                continue
-            
-            # Check if current line contains regatta keywords
-            has_regatta_keyword = any(
-                keyword.lower() in current_line.lower() 
-                for keyword in self.regatta_keywords
-            )
-            
-            # Check if next line contains dates
-            dates_found = []
-            for pattern in self.date_patterns:
-                matches = re.findall(pattern, next_line, re.IGNORECASE)
-                dates_found.extend(matches)
-            
-            # If we found a regatta title and dates, check if it's relevant
-            if has_regatta_keyword and dates_found:
-                # Clean up the dates (remove duplicates)
-                unique_dates = list(set(dates_found))
-                
-                # Filter out irrelevant content and old events
-                if not self.is_relevant_regatta(current_line, third_line):
-                    continue
-                    
-                # Filter out past events
-                if not any(self.is_future_event(date) for date in unique_dates):
-                    continue
-                
-                regatta = {
-                    'club': club_name,
-                    'title': current_line,
-                    'dates': unique_dates,
-                    'details': third_line[:100] if third_line else '',
-                    'description': f"{current_line} - {unique_dates[0]}" + (f" - {third_line[:50]}" if third_line else ""),
-                    'source_url': source_url,
-                    'scraped_at': datetime.now().isoformat()
-                }
-                
-                regattas.append(regatta)
-        
-        # Remove duplicates and return
-        return self.remove_duplicates(regattas)
-
-    def remove_duplicates(self, regattas):
-        """Remove duplicate regattas based on title similarity"""
-        unique = []
-        
-        for regatta in regattas:
-            is_duplicate = False
-            for existing in unique:
-                # Check if titles are very similar (first 40 chars)
-                if regatta['title'][:40].lower() == existing['title'][:40].lower():
-                    is_duplicate = True
-                    break
-            
-            if not is_duplicate:
-                unique.append(regatta)
-        
-        return unique
-
-    def format_regatta_message(self, regattas):
-        """Format regatta information for Telegram with improved layout and calendar link"""
-        if not regattas:
-            return "🏁 No upcoming regattas found today."
-        
-        # Sort regattas by date and club
-        try:
-            regattas.sort(key=lambda x: (x['club'], x['dates'][0] if x['dates'] else 'zzz'))
-        except:
-            pass  # If sorting fails, keep original order
+    def format_telegram_message(self, new_regattas: List[Dict]) -> str:
+        """Format new regattas for Telegram posting with length checking"""
+        if not new_regattas:
+            return ""
         
         message_parts = [
-            "⛵ **Balearic Sailing Regattas** ⛵\n",
-            "📅 [**View Full Calendar**](https://abandm010.github.io/balearic-regatta-scraper)\n"
+            "▲ NEW Balearic Sailing Events ▲",
+            f"Calendar: https://abandm010.github.io/balearic-regatta-scraper",
+            f"Found {len(new_regattas)} New Events",
+            ""
         ]
         
-        current_club = ""
-        regatta_count = 0
+        # Group events by boat type
+        yachts = [r for r in new_regattas if r['boat_type'] == 'yachts']
+        dinghies = [r for r in new_regattas if r['boat_type'] == 'dinghies']
+        mixed = [r for r in new_regattas if r['boat_type'] == 'mixed']
         
-        for regatta in regattas[:15]:  # Limit to 15 to avoid message length issues
-            regatta_count += 1
+        # Track message length to stay under 4096 characters
+        current_length = len("\n".join(message_parts))
+        max_length = 3500  # Leave buffer for footer
+        
+        # Add events by category with length checking
+        if yachts and current_length < max_length:
+            message_parts.append(f"▲ YACHTS ({len(yachts)} events)")
+            for regatta in yachts[:3]:  # Reduced to 3 events max
+                if current_length > max_length:
+                    break
+                event_symbol = regatta['event_symbol']
+                event_text = [
+                    f"[{event_symbol}] {regatta['title'][:50]}",  # Truncate long titles
+                    f"   Date: {regatta['date'][:30]}",
+                    f"   Club: {regatta['club'][:30]}",
+                    ""
+                ]
+                event_length = len("\n".join(event_text))
+                if current_length + event_length < max_length:
+                    message_parts.extend(event_text)
+                    current_length += event_length
+                else:
+                    break
+        
+        if dinghies and current_length < max_length:
+            message_parts.append(f"● DINGHIES ({len(dinghies)} events)")
+            for regatta in dinghies[:3]:  # Reduced to 3 events max
+                if current_length > max_length:
+                    break
+                event_symbol = regatta['event_symbol']
+                event_text = [
+                    f"[{event_symbol}] {regatta['title'][:50]}",
+                    f"   Date: {regatta['date'][:30]}",
+                    f"   Club: {regatta['club'][:30]}",
+                    ""
+                ]
+                event_length = len("\n".join(event_text))
+                if current_length + event_length < max_length:
+                    message_parts.extend(event_text)
+                    current_length += event_length
+                else:
+                    break
+        
+        if mixed and current_length < max_length:
+            message_parts.append(f"■ MIXED FLEET ({len(mixed)} events)")
+            for regatta in mixed[:3]:  # Reduced to 3 events max
+                if current_length > max_length:
+                    break
+                event_symbol = regatta['event_symbol']
+                event_text = [
+                    f"[{event_symbol}] {regatta['title'][:50]}",
+                    f"   Date: {regatta['date'][:30]}",
+                    f"   Club: {regatta['club'][:30]}",
+                    ""
+                ]
+                event_length = len("\n".join(event_text))
+                if current_length + event_length < max_length:
+                    message_parts.extend(event_text)
+                    current_length += event_length
+                else:
+                    break
+        
+        # Add footer
+        footer = [
+            "=" * 35,
+            "[BLUE] Single Day | [GREEN] Multi-Day | [RED] Series",
+            "▲ Yachts | ● Dinghies | ■ Mixed Fleet",
+            f"Updated: {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}"
+        ]
+        message_parts.extend(footer)
+        
+        final_message = "\n".join(message_parts)
+        
+        # Final safety check
+        if len(final_message) > 4096:
+            logger.warning(f"Message too long ({len(final_message)} chars), truncating...")
+            # Emergency truncation
+            truncated_parts = message_parts[:10]  # Keep header and first few events
+            truncated_parts.extend([
+                "...",
+                "Message truncated - see full calendar",
+                f"Updated: {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}"
+            ])
+            final_message = "\n".join(truncated_parts)
+        
+        return final_message
+
+    def send_telegram_message(self, message: str):
+        """Send message to Telegram"""
+        if not self.telegram_bot_token or not self.telegram_chat_id:
+            logger.warning("Telegram credentials not provided")
+            return
+        
+        try:
+            url = f"https://api.telegram.org/bot{self.telegram_bot_token}/sendMessage"
+            data = {
+                'chat_id': self.telegram_chat_id,
+                'text': message,
+                'parse_mode': 'Markdown'
+            }
             
-            # Group by club with separators
-            if regatta['club'] != current_club:
-                if current_club:  # Add separator between clubs
-                    message_parts.append("---")
-                current_club = regatta['club']
-            
-            # Translate title if needed
-            english_title, source_lang = self.translate_to_english_improved(regatta['title'])
-            
-            # Format dates nicely
-            dates_str = regatta['dates'][0] if regatta['dates'] else 'Date TBD'
-            
-            # Clean up the club name display
-            club_display = regatta['club'].replace('CN ', '').replace('Real Club Náutico de ', 'RCN ')
-            
-            message_parts.append(f"**{regatta_count}. {club_display}**")
-            message_parts.append(f"🏆 {english_title}")
-            message_parts.append(f"📅 {dates_str}")
-            
-            if regatta['details'] and not any(exclude in regatta['details'].lower() for exclude in self.exclude_keywords):
-                english_details, _ = self.translate_to_english_improved(regatta['details'])
-                message_parts.append(f"⛵ {english_details}")
-            
-            message_parts.append(f"🔗 [More info]({regatta['source_url']})")
-            
-            if source_lang not in ['en', 'unknown']:
-                message_parts.append(f"🌐 _(Translated from {source_lang})_")
+            response = requests.post(url, data=data, timeout=10)
+            if response.status_code == 200:
+                logger.info("✅ Telegram message sent successfully")
+            else:
+                logger.error(f"❌ Failed to send Telegram message: {response.status_code}")
                 
-            message_parts.append("")  # Empty line between regattas
+        except Exception as e:
+            logger.error(f"❌ Error sending Telegram message: {e}")
+
+    def save_regattas_json(self, regattas: List[Dict], filename: str = 'regattas.json'):
+        """Save all regattas to JSON file for calendar"""
+        try:
+            with open(filename, 'w', encoding='utf-8') as f:
+                json.dump(regattas, f, indent=2, ensure_ascii=False)
+            logger.info(f"✅ Saved {len(regattas)} regattas to {filename}")
+        except Exception as e:
+            logger.error(f"❌ Error saving regattas: {e}")
+
+    def run(self):
+        """Main scraping function"""
+        logger.info("🚀 Starting Balearic Sailing Regatta Scraper...")
         
-        if len(regattas) > 15:
-            message_parts.append(f"... and {len(regattas) - 15} more upcoming regattas!")
+        all_regattas = []
         
-        message_parts.append(f"🤖 _Updated: {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}_")
+        # Scrape all clubs
+        for club_info in self.clubs:
+            club_regattas = self.scrape_club_regattas(club_info)
+            all_regattas.extend(club_regattas)
+            time.sleep(1)  # Be respectful to servers
         
-        return "\n".join(message_parts)
+        # Remove duplicates
+        unique_regattas = []
+        seen_signatures = set()
+        
+        for regatta in all_regattas:
+            signature = self.create_event_signature(regatta)
+            if signature not in seen_signatures:
+                unique_regattas.append(regatta)
+                seen_signatures.add(signature)
+        
+        logger.info(f"📊 SCRAPING SUMMARY:")
+        logger.info(f"   Clubs processed: {len(self.clubs)}")
+        logger.info(f"   Total regattas found: {len(unique_regattas)}")
+        
+        # Categorize events
+        yachts = [r for r in unique_regattas if r['boat_type'] == 'yachts']
+        dinghies = [r for r in unique_regattas if r['boat_type'] == 'dinghies']
+        mixed = [r for r in unique_regattas if r['boat_type'] == 'mixed']
+        
+        single_day = [r for r in unique_regattas if r['event_type'] == 'single_day']
+        multi_day = [r for r in unique_regattas if r['event_type'] == 'multi_day']
+        series = [r for r in unique_regattas if r['event_type'] == 'series']
+        
+        logger.info(f"   Yachts: {len(yachts)}")
+        logger.info(f"   Dinghies: {len(dinghies)}")
+        logger.info(f"   Mixed: {len(mixed)}")
+        logger.info(f"   Single day: {len(single_day)}")
+        logger.info(f"   Multi-day: {len(multi_day)}")
+        logger.info(f"   Series: {len(series)}")
+        
+        # Always save all regattas for calendar
+        self.save_regattas_json(unique_regattas)
+        
+        # Check for new events
+        new_events = self.identify_new_events(unique_regattas)
+        
+        if new_events:
+            logger.info(f"🆕 Found {len(new_events)} new events - sending Telegram message")
+            message = self.format_telegram_message(new_events)
+            
+            if message:
+                self.send_telegram_message(message)
+            else:
+                logger.warning("⚠️ No message generated for new events")
+        else:
+            logger.info("✅ No new events found - skipping Telegram notification")
+        
+        # Add error notification if no events found at all
+        if not unique_regattas:
+            logger.error("❌ No regattas found from any club - possible scraper failure")
+            error_message = (
+                "⚠️ SCRAPER ALERT ⚠️\n"
+                "No sailing events found from any club.\n"
+                "This might indicate a problem with the scraper.\n"
+                f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}"
+            )
+            self.send_telegram_message(error_message)
+        
+        logger.info("🏁 Scraper completed successfully!")
 
 def main():
-    """Main scraping function with improved error handling and filtering"""
+    """Main function"""
     # Get credentials from environment variables
     telegram_bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
     telegram_chat_id = os.getenv('TELEGRAM_CHAT_ID')
     
-    scraper = RegattaScraper(telegram_bot_token, telegram_chat_id)
+    if not telegram_bot_token or not telegram_chat_id:
+        logger.warning("⚠️ Telegram credentials not found in environment variables")
+        logger.info("Set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID to enable notifications")
     
-    # Curated list of working sailing club websites
-    clubs = [
-        {
-            'name': 'CN Port d\'Ítxol',
-            'url': 'https://www.cnportitxol.info/regatas/',
-        },
-        {
-            'name': 'Real Club Náutico de Palma',
-            'url': 'https://www.rcnp.es/regatas',
-        },
-        {
-            'name': 'Copa del Rey MAPFRE',
-            'url': 'https://www.regatacopadelrey.com/home',
-        },
-        {
-            'name': 'PalmaVela',
-            'url': 'https://www.palmavela.com/',
-        },
-        {
-            'name': 'CN Ciutadella',
-            'url': 'https://regates.cnciutadella.com/es/default/races',
-        },
-        {
-            'name': 'CN Arenal',
-            'url': 'https://regatas.cnarenal.com/es/default/races',
-        },
-        {
-            'name': 'Club Marítimo San Antonio',
-            'url': 'https://www.cmsap.com/en/default/races/calendar',
-        },
-        {
-            'name': 'RCN Port de Pollença',
-            'url': 'https://regatas.rcnpp.club/es/default/races',
-        },
-        # Add more clubs gradually after testing
-    ]
-    
-    all_regattas = []
-    successful_scrapes = 0
-    
-    for club in clubs:
-        logger.info(f"Processing {club['name']}...")
-        
-        try:
-            regattas = scraper.scrape_club(club['name'], club['url'])
-            if regattas:
-                all_regattas.extend(regattas)
-                successful_scrapes += 1
-            
-            # Be polite - wait between requests
-            time.sleep(3)
-            
-        except Exception as e:
-            logger.error(f"Failed to process {club['name']}: {str(e)}")
-            continue
-    
-    logger.info(f"Successfully scraped {successful_scrapes}/{len(clubs)} clubs")
-    logger.info(f"Total relevant regattas found: {len(all_regattas)}")
-    
-    # Save results to file
-    with open('regattas.json', 'w', encoding='utf-8') as f:
-        json.dump(all_regattas, f, indent=2, ensure_ascii=False)
-    
-    # Send to Telegram if we found regattas
-    if all_regattas:
-        message = scraper.format_regatta_message(all_regattas)
-        
-        # Always print the message for debugging
-        print("\n" + "="*60)
-        print("GENERATED TELEGRAM MESSAGE:")
-        print("="*60)
-        print(message)
-        print("="*60)
-        
-        # Send to Telegram if configured
-        if telegram_bot_token and telegram_chat_id:
-            success = scraper.send_to_telegram(message)
-            if success:
-                logger.info("✅ Message sent to Telegram successfully")
-            else:
-                logger.error("❌ Failed to send message to Telegram")
-        else:
-            logger.info("ℹ️  Set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID to send to Telegram")
-    
-    else:
-        logger.warning("No relevant upcoming regattas found")
-    
-    # Print summary
-    print(f"\n📊 SCRAPING SUMMARY:")
-    print(f"   Clubs processed: {len(clubs)}")
-    print(f"   Successful scrapes: {successful_scrapes}")
-    print(f"   Relevant upcoming regattas: {len(all_regattas)}")
-    print(f"   Data saved to: regattas.json")
+    # Initialize and run scraper
+    scraper = SmartRegattaScraper(telegram_bot_token, telegram_chat_id)
+    scraper.run()
 
 if __name__ == "__main__":
     main()
