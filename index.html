@@ -297,6 +297,17 @@
             font-size: clamp(1rem, 2vw, 1.2rem);
         }
 
+        /* Hide any random text that might appear */
+        body > div:last-child {
+            display: none;
+        }
+
+        /* Hide debug text */
+        div[style*="position: absolute"],
+        div[style*="bottom: 0"] {
+            display: none !important;
+        }
+
         @media (max-width: 480px) {
             .calendar-day {
                 min-height: clamp(60px, 15vw, 80px);
@@ -368,7 +379,18 @@
             try {
                 const response = await fetch('regattas.json');
                 if (!response.ok) throw new Error('Failed to load regatta data');
-                regattas = await response.json();
+                const data = await response.json();
+                
+                // Validate and clean the data
+                regattas = data.filter(regatta => {
+                    return regatta && 
+                           regatta.title && 
+                           regatta.date && 
+                           regatta.club && 
+                           regatta.url;
+                });
+                
+                console.log(`Loaded ${regattas.length} valid regattas`);
                 renderCalendar();
             } catch (error) {
                 console.error('Error loading regattas:', error);
@@ -386,18 +408,27 @@
             });
         }
 
-        // Parse date from regatta data (handle various formats)
+        // Parse date from regatta data and standardize format
         function parseRegattaDate(dateStr) {
             try {
-                // Handle DD/MM/YYYY format
-                if (dateStr.includes('/')) {
-                    const parts = dateStr.split('/');
-                    if (parts.length === 3) {
-                        return new Date(parts[2], parts[1] - 1, parts[0]);
+                // Handle date ranges (DD/MM/YYYY - DD/MM/YYYY)
+                if (dateStr.includes(' - ')) {
+                    const parts = dateStr.split(' - ');
+                    const startDate = parts[0].trim();
+                    // For ranges, use the start date
+                    if (startDate.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
+                        const dateParts = startDate.split('/');
+                        return new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
                     }
                 }
                 
-                // Handle Spanish date format
+                // Handle DD/MM/YYYY format (already standard)
+                if (dateStr.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
+                    const parts = dateStr.split('/');
+                    return new Date(parts[2], parts[1] - 1, parts[0]);
+                }
+                
+                // Handle Spanish date format (X de mes de año)
                 const spanishMonths = {
                     'enero': 0, 'febrero': 1, 'marzo': 2, 'abril': 3,
                     'mayo': 4, 'junio': 5, 'julio': 6, 'agosto': 7,
@@ -405,13 +436,35 @@
                 };
                 
                 // Handle "del X de mes de año" format
-                const match = dateStr.match(/(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})/);
+                let match = dateStr.match(/(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})/);
                 if (match) {
                     const day = parseInt(match[1]);
                     const month = spanishMonths[match[2].toLowerCase()];
                     const year = parseInt(match[3]);
                     if (month !== undefined) {
                         return new Date(year, month, day);
+                    }
+                }
+                
+                // Handle "del X al Y de mes de año" format (multi-day)
+                match = dateStr.match(/del\s+(\d{1,2})\s+al\s+(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})/);
+                if (match) {
+                    const startDay = parseInt(match[1]);
+                    const month = spanishMonths[match[3].toLowerCase()];
+                    const year = parseInt(match[4]);
+                    if (month !== undefined) {
+                        return new Date(year, month, startDay);
+                    }
+                }
+                
+                // Handle "del X de mes al Y de mes de año" format
+                match = dateStr.match(/del\s+(\d{1,2})\s+de\s+(\w+)\s+al\s+(\d{1,2})\s+de\s+(\w+)\s+de\s+(\d{4})/);
+                if (match) {
+                    const startDay = parseInt(match[1]);
+                    const startMonth = spanishMonths[match[2].toLowerCase()];
+                    const year = parseInt(match[5]);
+                    if (startMonth !== undefined) {
+                        return new Date(year, startMonth, startDay);
                     }
                 }
                 
@@ -423,15 +476,30 @@
             }
         }
 
+        // Convert any date to standard DD/MM/YYYY format
+        function standardizeDate(dateStr) {
+            const date = parseRegattaDate(dateStr);
+            if (!date || isNaN(date.getTime())) {
+                return dateStr; // Return original if parsing fails
+            }
+            
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            
+            return `${day}/${month}/${year}`;
+        }
+
         // Get events for a specific day
         function getEventsForDay(date) {
             const targetDate = formatDate(date);
             return regattas.filter(regatta => {
                 const regattaDate = parseRegattaDate(regatta.date);
-                if (!regattaDate) return false;
+                if (!regattaDate || isNaN(regattaDate.getTime())) return false;
                 
                 // Check if the regatta date matches the target date
-                return formatDate(regattaDate) === targetDate;
+                const regattaFormatted = formatDate(regattaDate);
+                return regattaFormatted === targetDate;
             });
         }
 
@@ -472,9 +540,12 @@
                 'mixed': '■ Mixed'
             }[event.boat_type] || '■ Mixed';
 
+            // Standardize the date for display
+            const standardizedDate = standardizeDate(event.date);
+
             document.getElementById('eventDetailsContent').innerHTML = `
                 <h3>${getBoatSymbol(event.boat_type)} ${event.title}</h3>
-                <p><strong>📅 Date:</strong> ${event.date}</p>
+                <p><strong>📅 Date:</strong> ${standardizedDate}</p>
                 <p><strong>📍 Club:</strong> ${event.club}</p>
                 <p><strong>🏝️ Location:</strong> ${event.location}</p>
                 <p><strong>⛵ Type:</strong> ${boatTypeDisplay}</p>
