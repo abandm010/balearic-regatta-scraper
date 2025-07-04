@@ -1,4 +1,61 @@
-#!/usr/bin/env python3
+def format_telegram_message(self, new_regattas: List[Dict]) -> str:
+        """Format new regattas for Telegram posting with clean visual design"""
+        if not new_regattas:
+            return ""
+        
+        # Sort events by club and date for better organization
+        sorted_regattas = sorted(new_regattas, key=lambda x: (x['club'], x['date']))
+        
+        message_parts = [
+            "⛵ Balearic Sailing Regattas ⛵",
+            f"**[View Full Calendar]({self.get_calendar_url()})**",
+            ""
+        ]
+        
+        # Track message length to stay under 4096 characters
+        current_length = len("\n".join(message_parts))
+        max_length = 3500  # Leave buffer for footer
+        
+        # Group by club for clean presentation
+        current_club = None
+        event_count = 0
+        
+        for regatta in sorted_regattas:
+            if current_length > max_length:
+                break
+                
+            event_count += 1
+            
+            # Add club separator if new club
+            if regatta['club'] != current_club:
+                if current_club is not None:  # Add separator between clubs
+                    message_parts.append("---")
+                current_club = regatta['club']
+            
+            # Get symbols and names for categorization
+            boat_symbol = regatta['boat_symbol']
+            boat_type_name = {
+                'yachts': 'Yachts',
+                'dinghies': 'Dinghies', 
+                'mixed': 'Mixed'
+            }.get(regatta['boat_type'], 'Mixed')
+            
+            # Get event type with colored emoji
+            event_type_display = {
+                'single_day': '🔵 Single Day',
+                'multi_day': '🟢 Multi-Day',
+                'series': '🔴 Series'
+            }.get(regatta['event_type'], '🔵 Single Day')
+            
+            # Format event entry in clean style
+            event_entry = [
+                f"{event_count}. {regatta['club']} {boat_symbol} {boat_type_name}",
+                f"   {regatta['title']}",
+                f"   {regatta['date']}",
+                f"   {event_type_display}",
+                f"   [More info]({regatta['url']})",
+                ""
+            ]#!/usr/bin/env python3
 """
 Balearic Islands Sailing Regatta Scraper - SMART CATEGORIZED VERSION
 - Only sends Telegram messages when NEW events are found
@@ -403,108 +460,77 @@ class SmartRegattaScraper:
         return text
 
     def format_telegram_message(self, new_regattas: List[Dict]) -> str:
-        """Format new regattas for Telegram posting with length checking"""
+        """Format new regattas for Telegram posting with clean visual design"""
         if not new_regattas:
             return ""
         
+        # Sort events by club and date for better organization
+        sorted_regattas = sorted(new_regattas, key=lambda x: (x['club'], x['date']))
+        
         message_parts = [
-            "▲ NEW Balearic Sailing Events ▲",
-            f"Calendar: https://abandm010.github.io/balearic-regatta-scraper",
-            f"Found {len(new_regattas)} New Events",
+            "⛵ Balearic Sailing Regattas ⛵",
+            f"**[View Full Calendar]({self.get_calendar_url()})**",
             ""
         ]
-        
-        # Group events by boat type
-        yachts = [r for r in new_regattas if r['boat_type'] == 'yachts']
-        dinghies = [r for r in new_regattas if r['boat_type'] == 'dinghies']
-        mixed = [r for r in new_regattas if r['boat_type'] == 'mixed']
         
         # Track message length to stay under 4096 characters
         current_length = len("\n".join(message_parts))
         max_length = 3500  # Leave buffer for footer
         
-        # Add events by category with length checking
-        if yachts and current_length < max_length:
-            message_parts.append(f"▲ YACHTS ({len(yachts)} events)")
-            for regatta in yachts[:3]:  # Reduced to 3 events max
-                if current_length > max_length:
-                    break
-                event_symbol = regatta['event_symbol']
-                event_text = [
-                    f"[{event_symbol}] {regatta['title'][:50]}",  # Truncate long titles
-                    f"   Date: {regatta['date'][:30]}",
-                    f"   Club: {regatta['club'][:30]}",
-                    ""
-                ]
-                event_length = len("\n".join(event_text))
-                if current_length + event_length < max_length:
-                    message_parts.extend(event_text)
-                    current_length += event_length
-                else:
-                    break
+        # Group by club for clean presentation
+        current_club = None
+        event_count = 0
         
-        if dinghies and current_length < max_length:
-            message_parts.append(f"● DINGHIES ({len(dinghies)} events)")
-            for regatta in dinghies[:3]:  # Reduced to 3 events max
-                if current_length > max_length:
-                    break
-                event_symbol = regatta['event_symbol']
-                event_text = [
-                    f"[{event_symbol}] {regatta['title'][:50]}",
-                    f"   Date: {regatta['date'][:30]}",
-                    f"   Club: {regatta['club'][:30]}",
-                    ""
-                ]
-                event_length = len("\n".join(event_text))
-                if current_length + event_length < max_length:
-                    message_parts.extend(event_text)
-                    current_length += event_length
-                else:
-                    break
+        for regatta in sorted_regattas:
+            if current_length > max_length:
+                break
+                
+            event_count += 1
+            
+            # Add club header if new club
+            if regatta['club'] != current_club:
+                if current_club is not None:  # Add separator between clubs
+                    message_parts.append("---")
+                current_club = regatta['club']
+            
+            # Get symbols for categorization
+            boat_symbol = regatta['boat_symbol']
+            event_symbol = regatta['event_symbol'] 
+            
+            # Format event entry
+            event_entry = [
+                f"{event_count}. {regatta['club']} {boat_symbol}",
+                f"   {regatta['title']}",
+                f"   {regatta['date']} [{event_symbol}]",
+                f"   [More info]({regatta['url']})",
+                ""
+            ]
+            
+            # Check if we can fit this event
+            entry_length = len("\n".join(event_entry))
+            if current_length + entry_length < max_length:
+                message_parts.extend(event_entry)
+                current_length += entry_length
+            else:
+                break
         
-        if mixed and current_length < max_length:
-            message_parts.append(f"■ MIXED FLEET ({len(mixed)} events)")
-            for regatta in mixed[:3]:  # Reduced to 3 events max
-                if current_length > max_length:
-                    break
-                event_symbol = regatta['event_symbol']
-                event_text = [
-                    f"[{event_symbol}] {regatta['title'][:50]}",
-                    f"   Date: {regatta['date'][:30]}",
-                    f"   Club: {regatta['club'][:30]}",
-                    ""
-                ]
-                event_length = len("\n".join(event_text))
-                if current_length + event_length < max_length:
-                    message_parts.extend(event_text)
-                    current_length += event_length
-                else:
-                    break
-        
-        # Add footer
+        # Add footer with legend
         footer = [
-            "=" * 35,
-            "[BLUE] Single Day | [GREEN] Multi-Day | [RED] Series",
+            "---",
+            f"Found {len(new_regattas)} NEW events",
+            "",
             "▲ Yachts | ● Dinghies | ■ Mixed Fleet",
-            f"Updated: {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}"
+            "🔵 Single Day | 🟢 Multi-Day | 🔴 Series",
+            f"*Updated: {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}*"
         ]
+        
         message_parts.extend(footer)
         
-        final_message = "\n".join(message_parts)
-        
-        # Final safety check
-        if len(final_message) > 4096:
-            logger.warning(f"Message too long ({len(final_message)} chars), truncating...")
-            # Emergency truncation
-            truncated_parts = message_parts[:10]  # Keep header and first few events
-            truncated_parts.extend([
-                "...",
-                "Message truncated - see full calendar",
-                f"Updated: {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}"
-            ])
-            final_message = "\n".join(truncated_parts)
-        
-        return final_message
+        return "\n".join(message_parts)
+
+    def get_calendar_url(self) -> str:
+        """Get the calendar URL"""
+        return "https://abandm010.github.io/balearic-regatta-scraper"
 
     def send_telegram_message(self, message: str):
         """Send message to Telegram"""
