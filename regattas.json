@@ -190,17 +190,5 @@
     "event_type": "series",
     "color": "#ff9800",
     "boat_symbol": "●"
-  },
-  {
-    "title": "Arranca el Campeonato de Baleares de Optimist cita clasificatoria para la Copa y Campeonato de España",
-    "date": "1 de marzo de 2025",
-    "details": "1 de marzo de 2025",
-    "club": "CN Arenal",
-    "location": "Mallorca",
-    "url": "https://regatas.cnarenal.com/es/default/races",
-    "boat_type": "dinghies",
-    "event_type": "series",
-    "color": "#ff9800",
-    "boat_symbol": "●"
   }
 ]
