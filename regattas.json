@@ -154,5 +154,17 @@
     "event_type": "series",
     "color": "#ff9800",
     "boat_symbol": "▲"
+  },
+  {
+    "title": "COPA DE ESPAÑA 420",
+    "date": "Del 30 de Abril al 3 de Mayo de 2026",
+    "details": "Del 30 de Abril al 3 de Mayo de 2026",
+    "club": "CN Arenal",
+    "location": "Mallorca",
+    "url": "https://regatas.cnarenal.com/es/default/races",
+    "boat_type": "dinghies",
+    "event_type": "multi_day",
+    "color": "#34a853",
+    "boat_symbol": "●"
   }
 ]
