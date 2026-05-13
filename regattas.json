@@ -154,5 +154,17 @@
     "event_type": "series",
     "color": "#ff9800",
     "boat_symbol": "▲"
+  },
+  {
+    "title": "El Club Náutico Ciutadella cierra el Campeonato de Illes Balears ILCA 6 marcado por unas condiciones meteorológicas complicadas",
+    "date": "11 de mayo de 2026",
+    "details": "11 de mayo de 2026",
+    "club": "CN Ciutadella",
+    "location": "Menorca",
+    "url": "https://regates.cnciutadella.com/es/default/races",
+    "boat_type": "dinghies",
+    "event_type": "series",
+    "color": "#ff9800",
+    "boat_symbol": "●"
   }
 ]
